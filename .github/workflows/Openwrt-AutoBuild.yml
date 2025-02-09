@@ -260,18 +260,18 @@ jobs:
       run: |
         cd openwrt
         
-        cp .config .config.bak-cxl
-        # 执行 make defconfig，生成默认配置文件
-        make defconfig
+        # cp .config .config.bak-cxl
+        # # 执行 make defconfig，生成默认配置文件
+        # make defconfig
 
-        if [[ ! "${{matrix.target}}" =~ (amlogic_*|armsr_armv8|bcm27xx_*|rockchip_armv8|sunxi_*|x86_*) ]]; then
-        sed -n '/# Wireless Drivers/,/# end of Wireless Drivers/p' .config | sed -e 's/=m/=n/' >>.config
-        #sed -i "s/\(kmod-qca.*\)=m/\1=n/" .config
-        if [[ "${{matrix.target}}" == "rockchip_rk35xx" ]]; then 
-            sed -n '/# Video Support/,/# end of Video Support/p' .config | sed -e 's/=m/=n/' >>.config
-        fi
-        make defconfig
-        fi
+        # if [[ ! "${{matrix.target}}" =~ (amlogic_*|armsr_armv8|bcm27xx_*|rockchip_armv8|sunxi_*|x86_*) ]]; then
+        # sed -n '/# Wireless Drivers/,/# end of Wireless Drivers/p' .config | sed -e 's/=m/=n/' >>.config
+        # #sed -i "s/\(kmod-qca.*\)=m/\1=n/" .config
+        # if [[ "${{matrix.target}}" == "rockchip_rk35xx" ]]; then 
+        #     sed -n '/# Video Support/,/# end of Video Support/p' .config | sed -e 's/=m/=n/' >>.config
+        # fi
+        # make defconfig
+        # fi
 
         # # 合并之前备份的 .config 配置
         # if [ -f .config.bak ]; then
