@@ -95,7 +95,18 @@ jobs:
             echo "MTARGET=aarch64_generic" >> $GITHUB_ENV
           fi
         fi
-
+        
+    - name: Start tmate session
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y tmate
+        tmate -S /tmp/tmate.sock new-session -d
+        tmate -S /tmp/tmate.sock wait tmate-ready
+        echo "SSH 地址:"
+        tmate -S /tmp/tmate.sock display -p '#{tmate_ssh}'
+        echo "Web 端地址:"
+        tmate -S /tmp/tmate.sock display -p '#{tmate_web}'
+        
     - name: Trigger Packages Update
       continue-on-error: true
       if: contains(github.event.action, 'pkg')
@@ -248,21 +259,19 @@ jobs:
     - name: Defconfig
       run: |
         cd openwrt
-        # #make defconfig
         
-        # cp .config .config.bak
+        cp .config .config.bak-cxl
+        # 执行 make defconfig，生成默认配置文件
+        make defconfig
 
-        # # 执行 make defconfig，生成默认配置文件
-        # make defconfig
-
-        # if [[ ! "${{matrix.target}}" =~ (amlogic_*|armsr_armv8|bcm27xx_*|rockchip_armv8|sunxi_*|x86_*) ]]; then
-        # sed -n '/# Wireless Drivers/,/# end of Wireless Drivers/p' .config | sed -e 's/=m/=n/' >>.config
-        # #sed -i "s/\(kmod-qca.*\)=m/\1=n/" .config
-        # if [[ "${{matrix.target}}" == "rockchip_rk35xx" ]]; then 
-        #     sed -n '/# Video Support/,/# end of Video Support/p' .config | sed -e 's/=m/=n/' >>.config
-        # fi
-        # make defconfig
-        # fi
+        if [[ ! "${{matrix.target}}" =~ (amlogic_*|armsr_armv8|bcm27xx_*|rockchip_armv8|sunxi_*|x86_*) ]]; then
+        sed -n '/# Wireless Drivers/,/# end of Wireless Drivers/p' .config | sed -e 's/=m/=n/' >>.config
+        #sed -i "s/\(kmod-qca.*\)=m/\1=n/" .config
+        if [[ "${{matrix.target}}" == "rockchip_rk35xx" ]]; then 
+            sed -n '/# Video Support/,/# end of Video Support/p' .config | sed -e 's/=m/=n/' >>.config
+        fi
+        make defconfig
+        fi
 
         # # 合并之前备份的 .config 配置
         # if [ -f .config.bak ]; then
@@ -316,6 +325,7 @@ jobs:
         cd openwrt/bin/targets/*/*/
         cp $GITHUB_WORKSPACE/openwrt/.config ${{matrix.target}}.config || true
         cp $GITHUB_WORKSPACE/openwrt/build_dir/target-*/linux-*/linux-*/.config ${{matrix.target}}_kernel.config || true
+        cp $GITHUB_WORKSPACE/openwrt/config.bak-cxl ./ || true
         #rm -rf kwrt-!(*imagebuilder*)
         Emoji=("🎉" "🤞" "✨" "🎁" "🎈" "🎄" "🎨" "💋" "🍓" "🍕" "🍉" "💐" "🌴" "🚀" "🛸" "🗽" "⛅" "🌈" "🔥" "⛄" "🐶" "🏅" "🦄" "🐤")
         echo "EMOJI=${Emoji[$[$RANDOM % ${#Emoji[@]}]]}" >> $GITHUB_ENV
